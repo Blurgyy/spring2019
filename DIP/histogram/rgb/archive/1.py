@@ -109,6 +109,7 @@ def main():
         x = cv.imread(sys.argv[1]);
         y = rgbtohsi(x);
         cv.imshow("test", y);
+        # cv.imwrite("test.jpeg", y);
         # x1 = hsitorgb(y);
         # z = y;
         # z[:, :, 2] = histogram_eq(z[:, :, 2]);
