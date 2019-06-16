@@ -18,14 +18,20 @@ testing_set_dmp_fname = "../dmp/testing_set.pickle";
 training_img = [];
 testing_img = [];
 
+if(not os.path.exists("../dmp")):
+	os.makedirs("../dmp");
 
 if(not os.path.exists(training_set_dmp_fname)):
+	cnt = 0;
 	for root, dirs, files in os.walk(training_img_path):
 	    for file in files:
 	        if(file.split('.')[-1] == "png"):
 	            img = Image.open(root + '/' + file);
 	            arr = np.array(img);
 	            training_img.append(arr.reshape(-1, 1));
+	            cnt += 1;
+	            if(cnt % 1000 == 0):
+	            	print(cnt);
 
 	print("dumping training set..");
 	with open(training_set_dmp_fname, 'wb') as f:
@@ -33,11 +39,15 @@ if(not os.path.exists(training_set_dmp_fname)):
 	print("training set dumped at %s" % training_set_dmp_fname);
 
 if(not os.path.exists(testing_set_dmp_fname)):
+	cnt = 0;
 	for root, dirs, files in os.walk(testing_img_path):
 		for file in files:
 			img = Image.open(root + '/' + file);
 			arr = np.array(img);
 			testing_img.append(arr.reshape(-1, 1));
+			cnt += 1;
+			if(cnt % 100 == 0):
+				print(cnt);
 
 	print("dumping testing set..");
 	with open(testing_set_dmp_fname, 'wb') as f:
