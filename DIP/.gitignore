@@ -1,0 +1,13 @@
+# images
+*.png
+
+# raw binary files
+*.*-ubyte
+
+# compressed files
+*.gz
+*.7z
+
+# dump files
+*.pickle
+*.dmp
