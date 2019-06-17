@@ -38,12 +38,12 @@ if(force_update == True or not os.path.exists(training_set_dmp_fname)):
 	            training_img.append([arr.reshape(-1, 1), int(root.split('/')[-1])]);
 	            cnt += 1;
 	            if(cnt % 1000 == 0):
-	            	print(cnt);
+	            	print("\r%d/60000" % (cnt), end = "");
 
-	print("dumping training set..");
+	print("\rdumping training set..", end = "");
 	with open(training_set_dmp_fname, 'wb') as f:
 	    pickle.dump(training_img, f);
-	print("training set dumped at %s" % training_set_dmp_fname);
+	print("\rtraining set dumped at %s" % training_set_dmp_fname);
 
 if(force_update == True or not os.path.exists(testing_set_dmp_fname)):
 	cnt = 0;
@@ -54,10 +54,10 @@ if(force_update == True or not os.path.exists(testing_set_dmp_fname)):
 			testing_img.append(arr.reshape(-1, 1));
 			cnt += 1;
 			if(cnt % 100 == 0):
-				print(cnt);
+				print("\r%d/10000" % (cnt), end = "");
 
-	print("dumping testing set..");
+	print("\rdumping testing set..", end = "");
 	with open(testing_set_dmp_fname, 'wb') as f:
 		pickle.dump(testing_img, f);
-	print("testing set dumped ad %s" % testing_set_dmp_fname);
+	print("\rtesting set dumped at %s" % testing_set_dmp_fname);
 

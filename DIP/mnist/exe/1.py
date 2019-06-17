@@ -19,13 +19,19 @@ w_dmp_fname = "../dmp/w.pickle";
 
 with open(training_set_dmp_fname, 'rb') as f:
     training_imgs = pickle.load(f);
-print("training set loaded");
+    random.shuffle(training_imgs);
+print("training set loaded and shuffled");
 retrain = False;
 if(len(sys.argv) > 1 and sys.argv[1] == "--retrain"):
     retrain = True;
 if(os.path.exists(w_dmp_fname) and not retrain):
-    with open(w_dmp_fname, 'rb') as f:
-        w = pickle.load(f);
+    try:
+        with open(w_dmp_fname, 'rb') as f:
+            w = pickle.load(f);
+    except Exception as e:
+        print("read from file failed: %s" % e);
+        w = np.zeros(7840).reshape(10, 784);
+        print("weight reinitialized");
 else:
     w = np.zeros(7840).reshape(10, 784);
 
@@ -80,6 +86,7 @@ def update(w, x, loss, learning_rate, ):
                     w[i][j] += learning_rate * loss * (-grad[j][0]);
         with open(w_dmp_fname, 'wb') as f:
             pickle.dump(w, f);
+        # print(np.amax(w), np.amin(w), end = "\r");
         return w;
     except Exception as e:
         print("update(): %s" % e);
@@ -89,7 +96,7 @@ def train(training_imgs, w, Lambda, learning_rate, ):
     try:
         YES = 0;
         NO = 0;
-        random.shuffle(training_imgs);
+        # random.shuffle(training_imgs);
         size = len(training_imgs);
         for i in range(size):
             score = np.dot(w, training_imgs[i][0]);
@@ -109,6 +116,7 @@ def train(training_imgs, w, Lambda, learning_rate, ):
             # print(YES, NO);
             ratio = 100 * YES/(YES+NO);
             print("trained %d(%d/%d) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '\r');
+            # print("trained %d(%d/%d) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(score), np.amin(score)), end = '\r');
             update(w, training_imgs[i], loss, learning_rate);
             # for i in range(score.shape[0]):
             #     print(score[i][0]);
