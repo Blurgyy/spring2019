@@ -75,6 +75,7 @@ def total_loss(w, score, ground_truth, Lambda, ):
 def update(w, x, loss, learning_rate, ):
     try:
         grad = x[0];
+        print(grad);
         ground_truth = x[1];
         rows, cols = w.shape;
         for i in range(rows):
