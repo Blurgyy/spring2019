@@ -88,19 +88,23 @@ def total_loss(w, score, ground_truth, Lambda, ):
         print("%s(): %s" % (fn_name, e));
         return None;
 
-def update_weights(w, x, loss, learning_rate, backup = False):
+def update_weights(w, x, score, learning_rate, Lambda, backup = False):
     fn_name = "update_weights";
     try:
-        grad = x[0];
-        ground_truth = x[1];
-        rows, cols = w.shape;
-        for i in range(rows):
-            for j in range(cols):
-                # w[i][j] += learning_rate * loss * (-x[j][0]);
-                if(i == ground_truth):
-                    w[i][j] += learning_rate * loss * (grad[j][0]);
-                else:
-                    w[i][j] += learning_rate * loss * (-grad[j][0]);
+        X = x[0].reshape(1, -1);
+        gt = x[1];
+        prob = score;
+        prob -= np.max(prob);
+        prob = np.exp(prob) / np.sum(np.exp(prob));
+        dL_w = np.dot(prob, X);
+        dL_w[gt] = dL_w[gt] - X;
+        # w = w - learning_rate * dL_w; # adding this and the program will not run correctly
+        w -= learning_rate * dL_w; # while this runs perfectly, idk why
+
+        dLr = X * 2;
+        w -= Lambda * dLr;
+        # print('\n', w.min(), w.max());
+        # input();
         if(backup):
             w_dmp_fname = "../dmp/w.pickle";
             with open(w_dmp_fname, 'wb') as f:
@@ -136,9 +140,9 @@ def train(training_imgs, w, Lambda, learning_rate, ):
                 NO += 1;
             # print(YES, NO);
             ratio = 100 * YES/(YES+NO);
-            print("trained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m]) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '\r');
-            # print("trained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m]) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(w), np.amin(w)), end = '\r');
-            update_weights(w, training_imgs[i], loss, learning_rate, i % 1000 == 999);
+            # print("trained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '\r');
+            print("trained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(w), np.amin(w)), end = '\r');
+            update_weights(w, training_imgs[i], score, learning_rate, i % 1000 == 999);
             # for i in range(score.shape[0]):
             #     print(score[i][0]);
             # input();
@@ -149,11 +153,14 @@ def train(training_imgs, w, Lambda, learning_rate, ):
 def main():
     fn_name = "main";
     try:
-        training_imgs = load_training_set();
         w = init_weights();
-        Lambda = 0.02;
-        learning_rate = 0.00000005;
-        train(training_imgs, w, Lambda, learning_rate);
+        epoch = 5;
+        for i in range(epoch):
+            print("training epoch %d/%d:" % (i+1, epoch));
+            training_imgs = load_training_set();
+            Lambda = 1;
+            learning_rate = 1;
+            train(training_imgs, w, Lambda, learning_rate);
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
 
