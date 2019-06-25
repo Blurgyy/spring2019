@@ -31,7 +31,7 @@ def init_weights():
     try:
         w_dmp_fname = "../dmp/w.pickle";
         retrain = False;
-        if(len(sys.argv) > 1 and sys.argv[1] == "--retrain"):
+        if("--retrain" in sys.argv):
             retrain = True;
         if(os.path.exists(w_dmp_fname) and not retrain):
             try:
@@ -51,19 +51,6 @@ def init_weights():
         print("%s(): %s" % (fn_name, e));
         return None;
 
-def regularization_loss(w, ):
-    fn_name = "regularization_loss";
-    try:
-        rows, cols = w.shape;
-        ret = 0;
-        for i in range(rows):
-            for j in range(cols):
-                ret += w[i][j] ** 2;
-        return ret;
-    except Exception as e:
-        print("%s(): %s" % (fn_name, e));
-        return None;
-
 def normalize(x, Range = 1, ):
     fn_name = "normalize";
     try:
@@ -74,37 +61,6 @@ def normalize(x, Range = 1, ):
         else:
             ret = x / np.sum(x) * Range;
         return ret;
-    except Exception as e:
-        print("%s(): %s" % (fn_name, e));
-        return None;
-
-def softmax_loss(score, gt, ):
-    fn_name = "softmax_loss";
-    try:
-        ret = 0;
-        # softmax = score;
-        softmax = normalize(score, 10);
-        softmax -= np.max(softmax);
-        softmax = np.exp(softmax) / np.sum(np.exp(softmax));
-        crs_entropy_loss = -np.log(softmax);
-        # print(softmax);
-        # print(crs_entropy_loss);
-        # input();
-        ret = crs_entropy_loss[gt][0];
-        # print(ret);
-        # input();
-        return ret;
-    except Exception as e:
-        print("%s(): %s" % (fn_name, e));
-        return None;
-
-def total_loss(w, score, ground_truth, Lambda, ):
-    fn_name = "total_loss";
-    try:
-        sloss = softmax_loss(score, ground_truth);
-        rloss = regularization_loss(w);
-        # print(sloss, rloss);
-        return sloss + Lambda * rloss;
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
         return None;
@@ -156,7 +112,6 @@ def train(training_imgs, w, Lambda, learning_rate, ):
         size = len(training_imgs);
         for i in range(size):
             score = np.dot(w, training_imgs[i][0]);
-            # loss = total_loss(w, score, training_imgs[i][1], Lambda);
             
             idx = np.argmax(score);
             # print("predicted:\t%d\nground truth:\t%d" % (idx, training_imgs[i][1]));
@@ -181,6 +136,12 @@ def main():
     try:
         w = init_weights();
         epoch = 100;
+        if("--epoch" in sys.argv):
+            try:
+                epoch = int(sys.argv[sys.argv.index("--epoch")+1]);
+            except Exception as e:
+                pass;
+        print("\033[1;37mstarting training\033[0m: epoch = %d" % (epoch));
         for i in range(epoch):
             print("\ntraining epoch %d/%d:" % (i+1, epoch));
             training_imgs = load_training_set();
