@@ -47,7 +47,7 @@ def test(testing_imgs, w, ):
             else:
                 NO += 1;
             ratio = YES / (YES + NO) * 100;
-            print("\rtested \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '     ');
+            print("\rvalidate: \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '     ');
         print();
     except Exception as e:
         print("%s(): %s" % (fn_name, e));

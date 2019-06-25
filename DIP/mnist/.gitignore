@@ -6,7 +6,6 @@
 
 # compressed files
 *.gz
-*.7z
 
 # dump files
 dmp/

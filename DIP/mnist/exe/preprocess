@@ -3,9 +3,9 @@
 __author__ = "zgy";
 
 """
-Python script that reads all training and testing images 
-and dump the data into a .pickle file, so as to simplify
-the actual training process afterwards. 
+- Reads all training and testing images and dump
+- the data into a .pickle file, so as to simplify
+- the actual training process afterwards. 
 """
 
 import os

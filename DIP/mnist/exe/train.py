@@ -184,8 +184,10 @@ def main():
         for i in range(epoch):
             print("\ntraining epoch %d/%d:" % (i+1, epoch));
             training_imgs = load_training_set();
-            Lambda = (100-i)/1000;
-            learning_rate = (100-i)/100;
+            Lambda = (epoch - i) / (10 * epoch);
+            learning_rate = (epoch - i) / (epoch);
+            # Lambda = 0.01 / (i + 1);
+            # learning_rate = 1 / (i + 1);
             train(training_imgs, w, Lambda, learning_rate);
             backup_weights(w);
             print();
