@@ -51,7 +51,7 @@ if(force_update == True or not os.path.exists(testing_set_dmp_fname)):
 		for file in files:
 			img = Image.open(root + '/' + file);
 			arr = np.array(img);
-			testing_img.append(arr.reshape(-1, 1));
+			testing_img.append([arr.reshape(-1, 1), int(root.split('/')[-1])]);
 			cnt += 1;
 			if(cnt % 100 == 0):
 				print("\r%d/10000" % (cnt), end = "");

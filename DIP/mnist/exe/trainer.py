@@ -35,16 +35,19 @@ def init_weights():
             retrain = True;
         if(os.path.exists(w_dmp_fname) and not retrain):
             try:
+                print("loading weight...", end = '');
                 with open(w_dmp_fname, 'rb') as f:
                     w = pickle.load(f);
+                print("Done")
             except Exception as e:
                 print("read from file failed: %s" % e);
                 w = np.zeros(7840).reshape(10, 784);
                 print("weight reinitialized");
         else:
             w = np.zeros(7840).reshape(10, 784);
+            print("weight reinitialized");
         return w;
-    except Exception as E:
+    except Exception as e:
         print("%s(): %s" % (fn_name, e));
         return None;
 
@@ -61,14 +64,32 @@ def regularization_loss(w, ):
         print("%s(): %s" % (fn_name, e));
         return None;
 
+def normalize(x, Range = 1, ):
+    fn_name = "normalize";
+    try:
+        eps = 1e-8;
+        ret = None;
+        if(np.sum(x) < eps):
+            ret = np.ones(x.shape) * Range;
+        else:
+            ret = x / np.sum(x) * Range;
+        return ret;
+    except Exception as e:
+        print("%s(): %s" % (fn_name, e));
+        return None;
+
 def softmax_loss(score, gt, ):
     fn_name = "softmax_loss";
     try:
         ret = 0;
-        softmax = score;
+        # softmax = score;
+        softmax = normalize(score, 10);
         softmax -= np.max(softmax);
         softmax = np.exp(softmax) / np.sum(np.exp(softmax));
         crs_entropy_loss = -np.log(softmax);
+        # print(softmax);
+        # print(crs_entropy_loss);
+        # input();
         ret = crs_entropy_loss[gt][0];
         # print(ret);
         # input();
@@ -88,27 +109,37 @@ def total_loss(w, score, ground_truth, Lambda, ):
         print("%s(): %s" % (fn_name, e));
         return None;
 
+def backup_weights(w, ):
+    fn_name = "backup_weights";
+    try:
+        w_dmp_fname = "../dmp/w.pickle";
+        with open(w_dmp_fname, 'wb') as f:
+            pickle.dump(w, f);
+        return True;
+    except Exception as e:
+        print("%s(): %s" % (fn_name, e));
+        return False;
+
 def update_weights(w, x, score, learning_rate, Lambda, backup = False):
     fn_name = "update_weights";
     try:
         X = x[0].reshape(1, -1);
         gt = x[1];
+        # prob = normalize(score, 10);
         prob = score;
         prob -= np.max(prob);
         prob = np.exp(prob) / np.sum(np.exp(prob));
-        dL_w = np.dot(prob, X);
-        dL_w[gt] = dL_w[gt] - X;
-        # w = w - learning_rate * dL_w; # adding this and the program will not run correctly
-        w -= learning_rate * dL_w; # while this runs perfectly, idk why
+        dL_dw = np.dot(prob, X);
+        dL_dw[gt] = dL_dw[gt] - X;
+        # w = w - learning_rate * dL_dw; # adding this and the program will not run correctly
+        w -= learning_rate * dL_dw; # while this runs perfectly, idk why
 
         dLr = X * 2;
         w -= Lambda * dLr;
         # print('\n', w.min(), w.max());
         # input();
         if(backup):
-            w_dmp_fname = "../dmp/w.pickle";
-            with open(w_dmp_fname, 'wb') as f:
-                pickle.dump(w, f);
+            backup_weights(w);
             # print("backup complete");
         # print(np.amax(w), np.amin(w), end = "\r");
         return w;
@@ -125,14 +156,9 @@ def train(training_imgs, w, Lambda, learning_rate, ):
         size = len(training_imgs);
         for i in range(size):
             score = np.dot(w, training_imgs[i][0]);
-            loss = total_loss(w, score, training_imgs[i][1], Lambda);
+            # loss = total_loss(w, score, training_imgs[i][1], Lambda);
             
-            maxx = -1;
-            idx = -1;
-            for j in range(score.shape[0]):
-                if(maxx < score[j][0]):
-                    maxx = score[j][0];
-                    idx = j;
+            idx = np.argmax(score);
             # print("predicted:\t%d\nground truth:\t%d" % (idx, training_imgs[i][1]));
             if(idx == training_imgs[i][1]):
                 YES += 1;
@@ -140,8 +166,8 @@ def train(training_imgs, w, Lambda, learning_rate, ):
                 NO += 1;
             # print(YES, NO);
             ratio = 100 * YES/(YES+NO);
-            # print("trained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '\r');
-            print("trained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(w), np.amin(w)), end = '\r');
+            # print("\rtrained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '     ');
+            print("\rtrained \033[1;34m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(score), np.amin(score)), end = '     ');
             update_weights(w, training_imgs[i], score, learning_rate, i % 1000 == 999);
             # for i in range(score.shape[0]):
             #     print(score[i][0]);
@@ -154,13 +180,15 @@ def main():
     fn_name = "main";
     try:
         w = init_weights();
-        epoch = 5;
+        epoch = 100;
         for i in range(epoch):
-            print("training epoch %d/%d:" % (i+1, epoch));
+            print("\ntraining epoch %d/%d:" % (i+1, epoch));
             training_imgs = load_training_set();
-            Lambda = 1;
-            learning_rate = 1;
+            Lambda = (100-i)/1000;
+            learning_rate = (100-i)/100;
             train(training_imgs, w, Lambda, learning_rate);
+            backup_weights(w);
+            print();
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
 
