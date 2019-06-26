@@ -28,12 +28,21 @@ def init_weights():
     fn_name = "init_weights";
     try:
         w_dmp_fname = "../dmp/w.pickle";
+        if("--continue" in sys.argv):
+            try:
+                tmp_fname = sys.argv[sys.argv.index("--continue")+1];
+                if(os.path.exists(tmp_fname)):
+                    w_dmp_fname = tmp_fname;
+                else:
+                    print("file %s does not exist, ignoring" % tmp_fname);
+            except Exception as e:
+                pass;
         retrain = False;
         if("--retrain" in sys.argv):
             retrain = True;
         if(os.path.exists(w_dmp_fname) and not retrain):
             try:
-                print("loading weight...", end = '');
+                print("loading weights...", end = '');
                 with open(w_dmp_fname, 'rb') as f:
                     w = pickle.load(f);
                 print("Done")
@@ -137,7 +146,7 @@ def main():
             # learning_rate = 1; # constant
             # learning_rate = (epoch - i) / (epoch); # linear
             # learning_rate = 1 / (i + 1); # hyperbola
-            learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid #3 best
+            learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid # best performance
             # learning_rate = (np.arctan(-(i+1 - epoch/2)) + np.pi/2) / np.pi; # arctan
             print("\ntraining epoch %d/%d with learning_rate=%f" % (i+1, epoch, learning_rate));
             precision = train(training_imgs, w, learning_rate);
