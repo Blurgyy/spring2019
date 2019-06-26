@@ -28,7 +28,7 @@ def plot(fname, ):
         # y = np.ones(100); # constant
         # y = (100 - x) / (100); # linear
         # y = 1 / x; # hyperbola
-        # y = 1 / (1 + np.exp(x - 100 / 2)) # sigmoid
+        y = 1 / (1 + np.exp(x - 100 / 2)) # sigmoid
         # y = (np.arctan(-(x - 100/2)) + np.pi/2) / np.pi; # arctan
         y2 = y1.twinx();
         y2.plot(x, y, 'orange', label = "learning rate");
