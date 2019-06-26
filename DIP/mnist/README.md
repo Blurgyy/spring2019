@@ -28,7 +28,7 @@
     ```bash
     python3 preprocess # 可能会很慢
     ```
-  - 这将在 `mnist/` 文件夹下生成一个 `dmp/` 文件夹，包含训练数据集(`size: 51239504=49M`)和测试数据集(`size: 8539404=8.2M`)。
+    这将在 `mnist/` 文件夹下生成一个 `dmp/` 文件夹，包含训练数据集(`size: 51239504=49M`)和测试数据集(`size: 8539404=8.2M`)。
     - 如果目标路径已经存在同名文件(`training_set.pickle` 和 `testing_set.pickle`)，则直接跳过。
       要覆盖路径上的文件，使用
       ```bash
@@ -67,8 +67,10 @@
   - 进入 `exe/` 文件夹进行测试
     ```bash
     python3 validate.py
-    # 或指定权重文件，如
-    python3 validate.py $WEIGHTS_PATH # 命令行参数是权重文件的路径
+    ```
+    要指定权重文件，使用
+    ```bash
+	python3 validate.py $WEIGHTS_PATH # 命令行参数是权重文件的路径
     # 如
     # python3 validate.py ../dmp/w.pickle
     ```
