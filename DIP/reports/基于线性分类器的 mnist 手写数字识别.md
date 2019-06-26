@@ -55,7 +55,7 @@ $$
 
 ## 3. Algorithm Description
 ### 3.1 概述
-定义线性映射 $f(w,x)=wx$ ，取图像 $x$ 作为输入。此处的输入图像大小为 $28\times 28$ ，预处理图像为一个 $784\times 1$ 的向量，要通过一次线性变换做出十个类别的打分，则映射中的参数 $w$ （即权重）应为一个 $10\times 784$ 的矩阵。本文使用的损失函数是 $softmax$ 函数结合交叉熵损失加上正则化损失，通过最小化这个损失函数，每次根据梯度更新权重 $w$ ，从而达到学习权重的目的，检测过程使用训练出的权重矩阵 $w$ 对输入图像进行打分，得分最高的类别即为线性分类器的预测结果。
+定义线性映射 $f(w,x)=wx$ ，取图像 $x$ 作为输入。此处的输入图像大小为 $28\times 28$ ，预处理图像为一个 $784\times 1$ 的向量，要通过一次线性变换做出十个类别的打分，则映射中的参数 $w$ （即权重）应为一个 $10\times 784$ 的矩阵。本文使用的损失函数是 $softmax$ 函数结合交叉熵损失加上正则化损失，通过最小化这个损失函数，每次沿梯度反向更新权重 $w$ ，从而达到学习权重的目的，检测过程使用训练出的权重矩阵 $w$ 对输入图像进行打分，得分最高的类别即为线性分类器的预测结果。
 
 ### 3.2 反向传播梯度的推导
 打分函数和损失函数式：
@@ -90,7 +90,7 @@ $$
 $$
 其中 $k$ 为 $w$ 的列标，即 $\frac{df}{dw}$ 在 $w$ 的同一列上有相同的值。
 
-完成以上两步后，即可得到真实的梯度为
+完成以上两步后，即可得到**真实的梯度**为
 $$
 \frac{dL}{dw_k}=\frac{dL}{df}\frac{df}{dw}=\begin{cases}\\
 -x_{k,1}+\frac{e^{f_j}}{\sum_{k}e^{f_k}}x_{k,1}, & {j=y_i}\\
@@ -120,7 +120,7 @@ $$
 
 ## 4. Conclusion
 
-* 最初使用常数 $l=1$ 作为学习率，最终达到的测试集准确率在 $89%$ 左右；然后尝试让学习率 $l$ 随训练迭代次数增加而下降，分别尝试了线性[^linear]、反比[^hyperbola]、sigmoid[^sigmoid]、反正切函数[^arctan]作为 $l$ 的值，实验后发现qwerty可以达到最高的测试集准确率。
+* 最初使用常数 $l=1$ 作为学习率，最终达到的测试集准确率在 $89%$ 左右；然后尝试让学习率 $l$ 随训练迭代次数增加而下降，分别尝试了常数[^constant]、线性[^linear]、反比[^hyperbola]、$sigmoid$[^sigmoid]、反正切函数[^arctan]作为 $l$ 的值，实验后发现 $sigmoid$ 函数可以达到最高的测试集准确率。
 * 线性分类器通过给输入图像的每一个像素分配不同的权重，对不同的可能类别进行分别打分而达到图像分类目的，这种方式可以自然地推广到比手写数字识别更加复杂的图像分类任务上，但是由于现实生活中大多任务都不是线性的，而线性分类器只能作出线性变换，所以其准确率并不能达到很高。以下是
 * 线性分类器可以被用于神经网络中，叫做全连接层 (Fully Connected Layer, FC) ，卷积神经网络的最后一层大都是全连接层，多层全连接层配合非线性的激活函数理论上可以模拟任何非线性变换。[^FC]
 
@@ -128,13 +128,19 @@ $$
 
 
 ## 5. Reference 
-[^mnist]: [<font face="courier">http://yann.lecun.com/exdb/mnist/</font>](http://yann.lecun.com/exdb/mnist/)
+[^mnist]: [<font face="courier" color="black">http://yann.lecun.com/exdb/mnist/</font>](http://yann.lecun.com/exdb/mnist/)
+[^FC]:https://www.zhihu.com/question/41037974/answer/150522307
 [^mygit]: [https://github.com/Blurgyy/spring2019/tree/master/DIP/mnist](https://github.com/Blurgyy/spring2019/tree/master/DIP/mnist)
+[^constant]: $l=1$ 
 [^linear]: $l=\frac{(epoch-i+1)}{epoch}$ 
 [^hyperbola]: $l=\frac{1}{i}$ 
 [^sigmoid]: $l=\frac{1}{1+e^{i-\frac{epoch}{2}}}$ 
 [^arctan]: $l=\frac{-(i-\frac{epoch}{2})+\frac{\pi}{2}}{\pi}$ 
 
-[learn.1]: https://106.14.194.215/imghost/mnist_linear_classifier/learn.1.jpg	"learning_rate=1"
-[learn.2]: https://106.14.194.215/imghost/mnist_linear_classifier/learn.2.jpg	"learning_rate=(epoch-i)/epoch"
-[learn.3]: https://106.14.194.215/imghost/mnist_linear_classifier/learn.3.jpg	"learning_rate=1/i"
+[constant]: http://106.14.194.215/imghost/mnist_linear_classifier/constant.png	"Constant"
+[linear]: http://106.14.194.215/imghost/mnist_linear_classifier/linear.png	"Linear"
+[hyperbola]: http://106.14.194.215/imghost/mnist_linear_classifier/hyperbola.png	"Hyperbola"
+
+[sigmoid]: http://106.14.194.215/imghost/mnist_linear_classifier/sigmoid.png	"Sigmoid"
+[arctan]: http://106.14.194.215/imghost/mnist_linear_classifier/arctan.png	"Arctan"
+

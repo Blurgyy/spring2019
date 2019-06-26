@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*- 
 __author__ = "zgy";
 
+import sys
 import numpy as np
 import pickle
 import random
@@ -19,10 +20,10 @@ def load_test_set():
         print("%s(): %s" % (fn_name, e));
         return None;
 
-def load_weights():
+def load_weights(fname, ):
     fn_name = "load_weights";
     try:
-        w_dmp_fname = "../dmp/w.pickle";
+        w_dmp_fname = fname;
         w = None;
         with open(w_dmp_fname, 'rb') as f:
             w = pickle.load(f);
@@ -31,8 +32,8 @@ def load_weights():
         print("%s(): %s" % (fn_name, e));
         return None;
 
-def test(testing_imgs, w, ):
-    fn_name = "test";
+def validate(testing_imgs, w, ):
+    fn_name = "validate";
     try:
         size = len(testing_imgs);
         YES = 0;
@@ -56,8 +57,11 @@ def main():
     fn_name = "main";
     try:
         testing_imgs = load_test_set();
-        w = load_weights();
-        test(testing_imgs, w);
+        fname = "../dmp/w.pickle";
+        if(len(sys.argv) == 2):
+            fname = sys.argv[1];
+        w = load_weights(fname);
+        validate(testing_imgs, w);
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
 

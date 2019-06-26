@@ -145,10 +145,10 @@ def main():
         refresh_log();
         for i in range(epoch):
             training_imgs = load_training_set();
-            learning_rate = 1; # constant
+            # learning_rate = 1; # constant
             # learning_rate = (epoch - i) / (epoch); # linear
             # learning_rate = 1 / (i + 1); # hyperbola
-            # learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid
+            learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid # best
             # learning_rate = (np.arctan(-(i+1 - epoch/2)) + np.pi/2) / np.pi; # arctan
             print("\ntraining epoch %d/%d with learning_rate=%f" % (i+1, epoch, learning_rate));
             precision = train(training_imgs, w, learning_rate);
