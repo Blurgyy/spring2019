@@ -12,3 +12,6 @@ dmp/
 *.pickle
 *.dmp
 
+# training log
+.training_precision.log
+
