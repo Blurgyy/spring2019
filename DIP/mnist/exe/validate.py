@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*- 
-__author__ = "Blurgy";
+__author__ = "zgy";
 
 import numpy as np
 import pickle

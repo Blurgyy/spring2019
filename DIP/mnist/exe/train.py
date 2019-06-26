@@ -51,20 +51,6 @@ def init_weights():
         print("%s(): %s" % (fn_name, e));
         return None;
 
-def normalize(x, Range = 1, ):
-    fn_name = "normalize";
-    try:
-        eps = 1e-8;
-        ret = None;
-        if(np.sum(x) < eps):
-            ret = np.ones(x.shape) * Range;
-        else:
-            ret = x / np.sum(x) * Range;
-        return ret;
-    except Exception as e:
-        print("%s(): %s" % (fn_name, e));
-        return None;
-
 def backup_weights(w, ):
     fn_name = "backup_weights";
     try:
@@ -76,12 +62,11 @@ def backup_weights(w, ):
         print("%s(): %s" % (fn_name, e));
         return False;
 
-def update_weights(w, x, score, learning_rate, Lambda, backup = False):
+def update_weights(w, x, score, learning_rate, backup = False, ):
     fn_name = "update_weights";
     try:
         X = x[0].reshape(1, -1);
         gt = x[1];
-        # prob = normalize(score, 10);
         prob = score;
         prob -= np.max(prob);
         prob = np.exp(prob) / np.sum(np.exp(prob));
@@ -89,11 +74,6 @@ def update_weights(w, x, score, learning_rate, Lambda, backup = False):
         dL_dw[gt] = dL_dw[gt] - X;
         # w = w - learning_rate * dL_dw; # adding this and the program will not run correctly
         w -= learning_rate * dL_dw; # while this runs perfectly, idk why
-
-        dLr = X * 2;
-        w -= Lambda * dLr;
-        # print('\n', w.min(), w.max());
-        # input();
         if(backup):
             backup_weights(w);
             # print("backup complete");
@@ -103,7 +83,7 @@ def update_weights(w, x, score, learning_rate, Lambda, backup = False):
         print("%s(): %s" % (fn_name, e));
         return None;
 
-def train(training_imgs, w, Lambda, learning_rate, ):
+def train(training_imgs, w, learning_rate, ):
     fn_name = "train";
     try:
         YES = 0;
@@ -122,12 +102,32 @@ def train(training_imgs, w, Lambda, learning_rate, ):
             # print(YES, NO);
             ratio = 100 * YES/(YES+NO);
             # print("\rtrained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '     ');
-            print("\rtrained \033[1;34m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(score), np.amin(score)), end = '     ');
+            if(i % 1000 == 999):
+                print("\rtrained \033[1;34m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(w), np.amin(w)), end = '     ');
             update_weights(w, training_imgs[i], score, learning_rate, i % 1000 == 999);
             # for i in range(score.shape[0]):
             #     print(score[i][0]);
             # input();
-        return w;
+        return YES / size;
+    except Exception as e:
+        print("%s(): %s" % (fn_name, e));
+        return None;
+
+def refresh_log():
+    fn_name = "refresh_log";
+    try:
+        fname = ".training_precision.log";
+        with open(fname, 'w') as f:
+            f.write("");
+    except Exception as e:
+        print("%s(): %s" % (fn_name, e));
+
+def log_precision(precision, ):  # precision ranges [0, 1]
+    fn_name = "log_precision";
+    try:
+        fname = ".training_precision.log";
+        with open(fname, 'a') as f:
+            f.write("%f\n" % (precision));
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
 
@@ -142,15 +142,18 @@ def main():
             except Exception as e:
                 pass;
         print("\033[1;37mstarting training\033[0m: epoch = %d" % (epoch));
+        refresh_log();
         for i in range(epoch):
-            print("\ntraining epoch %d/%d:" % (i+1, epoch));
             training_imgs = load_training_set();
-            Lambda = (epoch - i) / (10 * epoch);
-            learning_rate = (epoch - i) / (epoch);
-            # Lambda = 0.01 / (i + 1);
-            # learning_rate = 1 / (i + 1);
-            train(training_imgs, w, Lambda, learning_rate);
+            learning_rate = 1; # constant
+            # learning_rate = (epoch - i) / (epoch); # linear
+            # learning_rate = 1 / (i + 1); # hyperbola
+            # learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid
+            # learning_rate = (np.arctan(-(i+1 - epoch/2)) + np.pi/2) / np.pi; # arctan
+            print("\ntraining epoch %d/%d with learning_rate=%f" % (i+1, epoch, learning_rate));
+            precision = train(training_imgs, w, learning_rate);
             backup_weights(w);
+            log_precision(precision);
             print();
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
