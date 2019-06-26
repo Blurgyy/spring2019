@@ -6,10 +6,6 @@
 
 
 
-
-
-
-
 | 姓名 | 张高阳 |
 |:---:|:---:|
 | 学号 | 16020021054 |
@@ -53,9 +49,12 @@ $$
 \frac{df}{dx}=\frac{df}{du}\times \frac{du}{dx}
 $$
 
+
+
 ## 3. Algorithm Description
+
 ### 3.1 概述
-定义线性映射 $f(w,x)=wx$ ，取图像 $x$ 作为输入。此处的输入图像大小为 $28\times 28$ ，预处理图像为一个 $784\times 1$ 的向量，要通过一次线性变换做出十个类别的打分，则映射中的参数 $w$ （即权重）应为一个 $10\times 784$ 的矩阵。本文使用的损失函数是 $softmax$ 函数结合交叉熵损失加上正则化损失，通过最小化这个损失函数，每次沿梯度反向更新权重 $w$ ，从而达到学习权重的目的，检测过程使用训练出的权重矩阵 $w$ 对输入图像进行打分，得分最高的类别即为线性分类器的预测结果。
+定义线性映射 $f(w,x)=wx$ ，取图像 $x$ 作为输入。此处的输入图像大小为 $28\times 28$ ，预处理图像为一个 $784\times 1$ 的向量，要通过一次线性变换做出十个类别的打分，则映射中的参数 $w$ （即权重）应为一个 $10\times 784$ 的矩阵。本文使用的损失函数是 $softmax$ 函数结合交叉熵损失加上正则化损失，通过最小化这个损失函数，每次沿梯度反向更新权重 $w$ ，从而达到学习权重的目的（训练过程对同一个训练集打乱顺序进行多次训练，以使权重收敛）。检测过程使用训练出的权重矩阵 $w$ 对输入图像进行打分，得分最高的类别即为线性分类器的预测结果。
 
 ### 3.2 反向传播梯度的推导
 打分函数和损失函数式：
@@ -111,8 +110,95 @@ $$
 
 ### 3.4 代码
 
-使用 `python` 的 `numpy` 库实现。
+代码实现过程中，为了防止每次开始训练都要重新读取一遍图片，我先写了一个脚本用来读取图片并把读取在内存中的数据保存在磁盘中，此后每次需要读取训练数据集或测试数据集时将磁盘中预先读取好的数据加载到内存中即可，可以提高训练和测试效率。下面是核心代码（略去了读取数据函数、初始化权重、备份数据等函数）。
+
+使用 `python` 的 `numpy` 库实现。完整代码可以在[**这里**][mygit]查看 
+
 ```python
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+__author__ = "zgy";
+
+import os 
+import sys
+import pickle 
+import numpy as np 
+from PIL import Image 
+import random 
+
+
+def update_weights(w, x, score, learning_rate, backup = False, ):
+    fn_name = "update_weights";
+    try:
+        X = x[0].reshape(1, -1);
+        gt = x[1];
+        prob = score;
+        prob -= np.max(prob);
+        prob = np.exp(prob) / np.sum(np.exp(prob));
+        dL_dw = np.dot(prob, X);
+        dL_dw[gt] = dL_dw[gt] - X;
+        w -= learning_rate * dL_dw;
+        if(backup):
+            backup_weights(w);
+        return w;
+    except Exception as e:
+        print("%s(): %s" % (fn_name, e));
+        return None;
+
+def train(training_imgs, w, learning_rate, ):
+    fn_name = "train";
+    try:
+        YES = 0;
+        NO = 0;
+        size = len(training_imgs);
+        for i in range(size):
+            score = np.dot(w, training_imgs[i][0]);
+            
+            idx = np.argmax(score);
+            if(idx == training_imgs[i][1]):
+                YES += 1;
+            else:
+                NO += 1;
+            ratio = 100 * YES/(YES+NO);
+            if(i % 1000 == 999):
+                print("\rtrained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '     ');
+                # print("\rtrained \033[1;34m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(w), np.amin(w)), end = '     ');
+            update_weights(w, training_imgs[i], score, learning_rate, i % 1000 == 999);
+        return YES / size;
+    except Exception as e:
+        print("%s(): %s" % (fn_name, e));
+        return None;
+
+def main():
+    fn_name = "main";
+    try:
+        w = init_weights();
+        epoch = 100;
+        if("--epoch" in sys.argv):
+            try:
+                epoch = int(sys.argv[sys.argv.index("--epoch")+1]);
+            except Exception as e:
+                pass;
+        print("\033[1;37mstarting training\033[0m: epoch = %d" % (epoch));
+        refresh_log();
+        for i in range(epoch):
+            training_imgs = load_training_set();
+            # learning_rate = 1; # constant
+            # learning_rate = (epoch - i) / (epoch); # linear
+            # learning_rate = 1 / (i + 1); # hyperbola
+            learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid #3 best
+            # learning_rate = (np.arctan(-(i+1 - epoch/2)) + np.pi/2) / np.pi; # arctan
+            print("\ntraining epoch %d/%d with learning_rate=%f" % (i+1, epoch, learning_rate));
+            precision = train(training_imgs, w, learning_rate);
+            backup_weights(w);
+            log_precision(precision);
+            print();
+    except Exception as e:
+        print("%s(): %s" % (fn_name, e));
+
+
+if(__name__ == "__main__"):
+    main();
 
 ```
 
@@ -120,22 +206,68 @@ $$
 
 ## 4. Conclusion
 
-* 最初使用常数 $l=1$ 作为学习率，最终达到的测试集准确率在 $89%$ 左右；然后尝试让学习率 $l$ 随训练迭代次数增加而下降，分别尝试了常数[^constant]、线性[^linear]、反比[^hyperbola]、$sigmoid$[^sigmoid]、反正切函数[^arctan]作为 $l$ 的值，实验后发现 $sigmoid$ 函数可以达到最高的测试集准确率。
-* 线性分类器通过给输入图像的每一个像素分配不同的权重，对不同的可能类别进行分别打分而达到图像分类目的，这种方式可以自然地推广到比手写数字识别更加复杂的图像分类任务上，但是由于现实生活中大多任务都不是线性的，而线性分类器只能作出线性变换，所以其准确率并不能达到很高。以下是
+* 最初使用常数 $l=1$ 作为学习率，最终达到的测试集准确率在 $89%$ 左右；然后尝试让学习率 $l$ 随训练迭代次数增加而下降，分别尝试了常数、线性、反比、$sigmoid$、反正切函数作为 $l$ 的值，实验后发现 $sigmoid$ 函数可以达到最高的测试集准确率。下面是不同的函数在训练过程中的预测准确度的变化曲线：
+  
+  * 常数：
+    $$
+    l=1
+    $$
+    ![constant][constant]
+    
+  * 线性下降： 
+    $$
+    l=\frac{(epoch-i+1)}{epoch}
+    $$
+    ![linear][linear]
+    
+  * 反比：
+    $$
+    l=\frac{1}{i}
+    $$
+    ![hyperbola][hyperbola]
+    
+  *  $sigmoid$ ：  
+    $$
+    l=\frac{1}{1+e^{i-\frac{epoch}{2}}}​
+    $$
+    ![sigmoid][sigmoid]
+    
+  * 反正切：
+    $$
+    l=\frac{-(i-\frac{epoch}{2})+\frac{\pi}{2}}{\pi}
+    $$
+    ![arctan][arctan]
+  
+  五种训练模型的最终准确率如下：
+  
+  ||常数|线性下降|反比|$sigmoid$|反正切|
+  |:---:|:---:|:---:|:---:|:---:|:---:|
+  |训练集准确率|$89.31\%$|$92.64\%$|$91.27\%$|$93.22\%$|$92.58\%$|
+  |测试集准确率|$89.83\%$|$90.11\%$|$90.03\%$|$90.63\%$|$89.97\%$|
+  
+  可见，在测试的五种函数中，如果学习率 $l$ 按 $sigmoid$ 函数规律下降，达到的准确率不论是在训练集还是在测试集上都是最优的。
+  
+  > 在实际训练过程中观察到，学习率根据 $sigmoid$ 函数下降的训练模型仅在第 $50$ 次迭代左右下降明显，在前 $35$ 次迭代时的学习率几乎等于 $1$ ，并且在第 $65$ 次之后，学习率几乎变为 $0$ ，此后的预测准确率都不再变化。
+  
+* 线性分类器通过给输入图像的每一个像素分配不同的权重，对不同的可能类别进行分别打分而达到图像分类目的，这种方式可以自然地推广到比手写数字识别更加复杂的图像分类任务上，但是由于现实生活中大多任务都不是线性的，而线性分类器只能作出线性变换，所以其准确率并不能达到很高。
+
 * 线性分类器可以被用于神经网络中，叫做全连接层 (Fully Connected Layer, FC) ，卷积神经网络的最后一层大都是全连接层，多层全连接层配合非线性的激活函数理论上可以模拟任何非线性变换。[^FC]
 
 
 
 
-## 5. Reference 
+
 [^mnist]: [<font face="courier" color="black">http://yann.lecun.com/exdb/mnist/</font>](http://yann.lecun.com/exdb/mnist/)
-[^FC]:https://www.zhihu.com/question/41037974/answer/150522307
-[^mygit]: [https://github.com/Blurgyy/spring2019/tree/master/DIP/mnist](https://github.com/Blurgyy/spring2019/tree/master/DIP/mnist)
+[^FC]:全连接层的作用： [<font face="courier" color="black">https://www.zhihu.com/question/41037974/answer/150522307</font>](<https://www.zhihu.com/question/41037974/answer/150522307>)
+[mygit]: https://github.com/Blurgyy/spring2019/tree/master/DIP/mnist
+
+
 [^constant]: $l=1$ 
 [^linear]: $l=\frac{(epoch-i+1)}{epoch}$ 
 [^hyperbola]: $l=\frac{1}{i}$ 
-[^sigmoid]: $l=\frac{1}{1+e^{i-\frac{epoch}{2}}}$ 
 [^arctan]: $l=\frac{-(i-\frac{epoch}{2})+\frac{\pi}{2}}{\pi}$ 
+[^sigmoid]: $l=\frac{1}{1+e^{i-\frac{epoch}{2}}}$ 
+
 
 [constant]: http://106.14.194.215/imghost/mnist_linear_classifier/constant.png	"Constant"
 [linear]: http://106.14.194.215/imghost/mnist_linear_classifier/linear.png	"Linear"

@@ -8,8 +8,6 @@ import pickle
 import numpy as np 
 from PIL import Image 
 import random 
-# import torch
-# from torch.autograd import Variable 
 
 
 def load_training_set():
@@ -72,12 +70,9 @@ def update_weights(w, x, score, learning_rate, backup = False, ):
         prob = np.exp(prob) / np.sum(np.exp(prob));
         dL_dw = np.dot(prob, X);
         dL_dw[gt] = dL_dw[gt] - X;
-        # w = w - learning_rate * dL_dw; # adding this and the program will not run correctly
-        w -= learning_rate * dL_dw; # while this runs perfectly, idk why
+        w -= learning_rate * dL_dw;
         if(backup):
             backup_weights(w);
-            # print("backup complete");
-        # print(np.amax(w), np.amin(w), end = "\r");
         return w;
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
@@ -88,26 +83,20 @@ def train(training_imgs, w, learning_rate, ):
     try:
         YES = 0;
         NO = 0;
-        # random.shuffle(training_imgs);
         size = len(training_imgs);
         for i in range(size):
             score = np.dot(w, training_imgs[i][0]);
             
             idx = np.argmax(score);
-            # print("predicted:\t%d\nground truth:\t%d" % (idx, training_imgs[i][1]));
             if(idx == training_imgs[i][1]):
                 YES += 1;
             else:
                 NO += 1;
-            # print(YES, NO);
             ratio = 100 * YES/(YES+NO);
-            # print("\rtrained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '     ');
             if(i % 1000 == 999):
-                print("\rtrained \033[1;34m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(w), np.amin(w)), end = '     ');
+                print("\rtrained \033[1;37m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%" % (YES + NO, YES, NO, ratio), end = '     ');
+                # print("\rtrained \033[1;34m%d\033[0m(\033[1;32m%d\033[0m/\033[1;31m%d\033[0m) pics, precision: %.2f%%, (%g, %g)" % (YES + NO, YES, NO, ratio, np.amax(w), np.amin(w)), end = '     ');
             update_weights(w, training_imgs[i], score, learning_rate, i % 1000 == 999);
-            # for i in range(score.shape[0]):
-            #     print(score[i][0]);
-            # input();
         return YES / size;
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
@@ -148,7 +137,7 @@ def main():
             # learning_rate = 1; # constant
             # learning_rate = (epoch - i) / (epoch); # linear
             # learning_rate = 1 / (i + 1); # hyperbola
-            learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid # best
+            learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid #3 best
             # learning_rate = (np.arctan(-(i+1 - epoch/2)) + np.pi/2) / np.pi; # arctan
             print("\ntraining epoch %d/%d with learning_rate=%f" % (i+1, epoch, learning_rate));
             precision = train(training_imgs, w, learning_rate);
