@@ -15,3 +15,6 @@ dmp/
 # training log
 .training_precision.log
 
+# typescript
+typescript
+
