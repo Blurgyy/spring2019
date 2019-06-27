@@ -14,7 +14,8 @@ def plot(fname, ):
         yaxis = [];
         with open(fname) as f:
             lines = f.readlines();
-        for i in range(len(lines)):
+        epoch = len(lines);
+        for i in range(epoch):
             prec = float(lines[i].strip());
             xaxis.append(i+1);
             yaxis.append(prec);
@@ -24,12 +25,12 @@ def plot(fname, ):
         y1.axis([1, xaxis[-1], yaxis[0], 1.0]);
         y1.legend(loc = 1);
         ## define learning rate below
-        x = np.arange(1, 101, 1);
-        # y = np.ones(100); # constant
-        # y = (100 - x) / (100); # linear
+        x = np.arange(1, epoch+1, 1);
+        # y = np.ones(epoch); # constant
+        # y = (epoch - x) / (epoch); # linear
         # y = 1 / x; # hyperbola
-        y = 1 / (1 + np.exp(x - 100 / 2)) # sigmoid
-        # y = (np.arctan(-(x - 100/2)) + np.pi/2) / np.pi; # arctan
+        y = 1 / (1 + np.exp(x - epoch / 2)) # sigmoid
+        # y = (np.arctan(-(x - epoch/2)) + np.pi/2) / np.pi; # arctan
         y2 = y1.twinx();
         y2.plot(x, y, 'orange', label = "learning rate");
         y2.legend(loc = 2);
