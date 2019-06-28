@@ -70,7 +70,7 @@
     ```
     要指定权重文件，使用
     ```bash
-	python3 validate.py $WEIGHTS_PATH # 命令行参数是权重文件的路径
+  python3 validate.py $WEIGHTS_PATH # 命令行参数是权重文件的路径
     # 如
     # python3 validate.py ../dmp/w.pickle
     ```
@@ -87,7 +87,9 @@
       # 如
       # python3 plot.py .sigmoid.log
       ```
-    - 绘制出的图像中，蓝色的是训练集上的准确率变化曲线，黄色的是学习率(learning rate)在迭代过程中的变化曲线(默认使用 `sigmoid` 函数)。要修改学习率曲线，*注释*/*取消注释* [这里](https://github.com/Blurgyy/spring2019/blob/42b0ba78981189808752fa682d86f60b7f0e7b40/DIP/mnist/exe/plot.py#L31)。
+    - 绘制出的图像中，蓝色的是训练集上的准确率变化曲线，黄色的是学习率(learning rate)在迭代过程中的变化曲线(默认使用 `sigmoid` 函数)。要修改学习率曲线，*注释*/*取消注释* [这里](https://github.com/Blurgyy/spring2019/blob/c03d86ecd6c65c3beb05b54c1333d2da00b80ab8/DIP/mnist/exe/plot.py#L32)。
+    - E.g.
+      ![sigmoid](http://106.14.194.215/imghost/mnist_linear_classifier/sigmoid.png "sigmoid")
 
 > 我该去复习了
 
