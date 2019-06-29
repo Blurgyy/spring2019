@@ -120,12 +120,12 @@ def refresh_log():
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
 
-def log_precision(precision, ):  # precision ranges [0, 1]
+def log_precision(precision, learning_rate, ):  # precision ranges [0, 1]
     fn_name = "log_precision";
     try:
         fname = ".training_precision.log";
         with open(fname, 'a') as f:
-            f.write("%f\n" % (precision));
+            f.write("%f %f\n" % (precision, learning_rate));
     except Exception as e:
         print("%s(): %s" % (fn_name, e));
 
@@ -142,16 +142,16 @@ def main():
         print("\033[1;37mstarting training\033[0m: epoch = %d" % (epoch));
         refresh_log();
         for i in range(epoch):
-            training_imgs = load_training_set();
             # learning_rate = 1; # constant
             # learning_rate = (epoch - i) / (epoch); # linear
             # learning_rate = 1 / (i + 1); # hyperbola
             learning_rate = 1 / (1 + np.exp(i + 1 - epoch / 2)); # sigmoid # best performance
             # learning_rate = (np.arctan(-(i+1 - epoch/2)) + np.pi/2) / np.pi; # arctan
             print("\ntraining epoch %d/%d with learning_rate=%f" % (i+1, epoch, learning_rate));
+            training_imgs = load_training_set();
             precision = train(training_imgs, w, learning_rate);
             backup_weights(w);
-            log_precision(precision);
+            log_precision(precision, learning_rate);
             print();
     except Exception as e:
         print("%s(): %s" % (fn_name, e));

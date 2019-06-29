@@ -60,7 +60,7 @@
       ```
     - 以上参数可以结合使用。但当参数 `--retrain` 激活时， `--continue` 被忽略。
     - 学习率随训练迭代次数降低，默认函数是一个类 `sigmoid` 函数（在我的电脑上这一函数的训练效果和测试效果都是最好的），要修改这个函数，*注释*/*取消注释* [这里](https://github.com/Blurgyy/spring2019/blob/4cb6641e71544327e10c7aba56560ed0ce86a132/DIP/mnist/exe/train.py#L149)。
-    - 训练过程中，每训练一个 `epoch` ，预测准确值将被记录在文件 `.training_precision.log` 里。这一文件用于 [`plot.py`](https://github.com/Blurgyy/spring2019/blob/master/DIP/mnist/exe/plot.py) 绘制图像使用。
+    - 训练过程中，每训练一个 `epoch` ，预测准确值和学习率将被记录在文件 `.training_precision.log` 里。这一文件用于 [`plot.py`](https://github.com/Blurgyy/spring2019/blob/master/DIP/mnist/exe/plot.py) 绘制图像使用。
   - 训练出的权重被备份在刚才的 `mnist/dmp/` 文件夹下。
 
 ### 测试
@@ -83,11 +83,11 @@
     默认使用 `exe/` 文件夹下的文件 `.training_precision.log` 作为数据进行绘制。
     - 要指定绘制图像时使用的数据，使用
       ```bash
-      python3 plot.py $LOG_PATH # 命令行参数是记录文件的路径，该文件每一行包含一个 [0,1] 区间内的浮点数
+      python3 plot.py $LOG_PATH # 命令行参数是记录文件的路径
       # 如
       # python3 plot.py .sigmoid.log
       ```
-    - 绘制出的图像中，蓝色的是训练集上的准确率变化曲线，黄色的是学习率(learning rate)在迭代过程中的变化曲线(默认使用 `sigmoid` 函数)。要修改学习率曲线，*注释*/*取消注释* [这里](https://github.com/Blurgyy/spring2019/blob/c03d86ecd6c65c3beb05b54c1333d2da00b80ab8/DIP/mnist/exe/plot.py#L32)。
+    - 绘制出的图像中，蓝色的是训练集上的准确率变化曲线，黄色的是学习率(learning rate)在迭代过程中的变化曲线。
     - E.g.
     
       ![sigmoid](http://106.14.194.215/imghost/mnist_linear_classifier/sigmoid.png "sigmoid")

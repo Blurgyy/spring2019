@@ -10,31 +10,30 @@ def plot(fname, ):
     fn_name = "plot";
     try:
         lines = None;
-        xaxis = [];
-        yaxis = [];
+        xaxis = []; # epoch id
+        yaxis = []; # precision
+        lraxis = []; # learning rate
         with open(fname) as f:
             lines = f.readlines();
         epoch = len(lines);
         for i in range(epoch):
-            prec = float(lines[i].strip());
+            prec = float(lines[i].strip().split(' ')[0]);
+            lr = float(lines[i].strip().split(' ')[1]);
             xaxis.append(i+1);
             yaxis.append(prec);
+            lraxis.append(lr);
         fig = plt.figure();
         y1 = fig.add_subplot(111);
         y1.plot(xaxis, yaxis, label = "precision");
         y1.axis([1, xaxis[-1], yaxis[0], 1.0]);
-        y1.legend(loc = 1);
-        ## define learning rate below
-        x = np.arange(1, epoch+1, 1);
-        # y = np.ones(epoch); # constant
-        # y = (epoch - x) / (epoch); # linear
-        # y = 1 / x; # hyperbola
-        y = 1 / (1 + np.exp(x - epoch / 2)) # sigmoid
-        # y = (np.arctan(-(x - epoch/2)) + np.pi/2) / np.pi; # arctan
+        y1.legend(loc = 3);
+        plt.grid();
+
         y2 = y1.twinx();
-        y2.plot(x, y, 'orange', label = "learning rate");
-        y2.legend(loc = 2);
-        plt.grid(True);
+        y2.tick_params(axis = 'y', colors = "orange");
+        y2.plot(xaxis, lraxis, "orange", label = "learning rate");
+        y2.legend(loc = 1);
+        plt.grid();
         plt.savefig(fname.split('.')[-2] + '.png');
         plt.show();
     except Exception as e:
