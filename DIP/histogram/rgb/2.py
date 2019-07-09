@@ -14,7 +14,7 @@ def rgb2hsi(imIn):
         G = G / 255.0;
         R = R / 255.0;
         eps = 1e-8;
-        pi = np.acos(-1.0);
+        pi = np.arccos(-1.0);
         rows, cols = imIn.shape[0], imIn.shape[1];
         for i in range(rows):
             for j in range(cols):
@@ -32,7 +32,7 @@ def rgb2hsi(imIn):
                     if(r == g and g == b):
                         H = 0;
                     else:
-                        theta = np.acos((0.5 * ((r-g) + (r-b))) / np.sqrt(((r-g) ** 2 + (r-b) * (g-b))));
+                        theta = np.arccos((0.5 * ((r-g) + (r-b))) / np.sqrt(((r-g) ** 2 + (r-b) * (g-b))));
                         if(b <= g):
                             H = theta;
                         else:
@@ -60,7 +60,7 @@ def hsi2rgb(imIn):
         S = S / 255.0;
         I = I / 255.0;
         eps = 1e-8;
-        pi = np.acos(-1.0);
+        pi = np.arccos(-1.0);
         for i in range(rows):
             for j in range(cols):
                 B = 0;
