@@ -48,10 +48,12 @@ def init_weights():
                 print("Done")
             except Exception as e:
                 print("read from file failed: %s" % e);
-                w = np.zeros(7840).reshape(10, 784);
+                # w = np.zeros(7840).reshape(10, 784);
+                w = 10000 * np.random.randn(10, 784);
                 print("weight reinitialized");
         else:
-            w = np.zeros(7840).reshape(10, 784);
+            # w = np.zeros(7840).reshape(10, 784);
+            w = 10000 * np.random.randn(10, 784);
             print("weight reinitialized");
         return w;
     except Exception as e:
@@ -133,7 +135,7 @@ def main():
     fn_name = "main";
     try:
         w = init_weights();
-        epoch = 100;
+        epoch = 20;
         if("--epoch" in sys.argv):
             try:
                 epoch = int(sys.argv[sys.argv.index("--epoch")+1]);
