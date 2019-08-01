@@ -80,7 +80,7 @@ def update_weights(w, x, score, learning_rate, backup = False, ):
         dL_dw = np.dot(prob, X);
         dL_dw[gt] = dL_dw[gt] - X;
 
-        dR_dw = 2e-6 * learning_rate * w;
+        dR_dw = 1e-2 * learning_rate * w;
         w -= dR_dw; # Regularization
 
         w -= learning_rate * dL_dw;
@@ -137,7 +137,7 @@ def main():
     fn_name = "main";
     try:
         w = init_weights();
-        epoch = 100;
+        epoch = 20;
         if("--epoch" in sys.argv):
             try:
                 epoch = int(sys.argv[sys.argv.index("--epoch")+1]);
